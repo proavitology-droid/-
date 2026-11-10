@@ -3,7 +3,7 @@ const http=require('node:http');
 const fs=require('node:fs');
 const path=require('node:path');
 const PAGE=fs.readFileSync(path.join(__dirname,'index.html'));
-const BOOKMARKLET=fs.readFileSync(path.join(__dirname,'bookmarklet.js'),'utf8').trim();
+const BOOKMARKLET=fs.readFileSync(path.join(__dirname,'bookmarklet.js'),'utf8').replace(/^\s*\/\/.*$/gm,'').replace(/\r?\n/g,' ').trim();
 const hits=new Map();
 function respond(res,code,obj){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(obj));}
 function valid(raw){
