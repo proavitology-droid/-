@@ -1,217 +1,116 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#102039">
-<meta name="description" content="Бесплатная проверка видимых признаков продвижения Авито по скриншотам. На телефоне и компьютере, без регистрации и расширений.">
-<title>Проверка продвижения Авито — бесплатно</title>
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#122139"><meta name="description" content="Анализ признаков платного продвижения на первой странице Авито по одной ссылке.">
+<title>Парсер выдачи Авито — анализ продвижения</title>
 <style>
-:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;line-height:1.5;color:#142238;background:#f5f7fb}
-*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
-.header{background:#0f2039;color:white;padding:20px 20px 125px}
-.wrap{max-width:800px;margin:auto}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}.logo{background:#f26461;border-radius:10px;width:32px;height:32px;display:grid;place-items:center;font-size:21px}
-.eyebrow{margin:52px 0 11px;text-transform:uppercase;color:#f99f9d;letter-spacing:.1em;font-size:11px;font-weight:800}
-h1{font-size:clamp(29px,5vw,47px);line-height:1.12;letter-spacing:-.042em;margin:0 0 17px}
-.lead{color:#c6cfdd;font-size:16px;max-width:640px;margin:0}
-.container{margin:-85px auto 40px;padding:0 18px}
-.panel{background:#fff;border:1px solid #e5eaf1;box-shadow:0 14px 50px #10213a12;border-radius:18px;padding:30px;margin-bottom:17px}
-.pill{background:#e8f6ed;color:#19764a;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:40px;font-size:11px;font-weight:800;margin-bottom:20px}
-h2{font-size:23px;letter-spacing:-.03em;margin:0 0 6px}
-.hint{font-size:14px;color:#68758a;margin:0 0 20px}
-.step{display:flex;align-items:center;gap:10px;margin:21px 0 11px;font-weight:750;font-size:15px}
-.step .num{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:9px;background:#eaf0f8;color:#26425f;font-size:13px}
-.box{padding:17px;border-radius:13px;border:1px solid #dce4ef;background:#fafbfe}
-.url-row{display:flex;gap:9px}
-.url{min-width:0;flex:1;border:1px solid #d1d9e6;border-radius:10px;background:white;outline:none;padding:13px;font-size:14px}
-.url:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed66601a}
-.link-btn{border:0;background:#e8edf5;color:#29425f;border-radius:10px;padding:0 17px;white-space:nowrap;font-size:13px;font-weight:750}
-.mini{font-size:12px;color:#7b8797;margin:9px 0 0}
-.upload{display:block;text-align:center;padding:31px 16px;border-radius:13px;background:#fff;border:2px dashed #c7d3e5;cursor:pointer;transition:.2s}
-.upload.drag{border-color:#ee6760;background:#fff9f9}
-.upload-icon{font-size:27px;display:block;margin-bottom:8px}
-.upload strong{font-size:16px;display:block}.upload span.sub{display:block;font-size:12px;color:#79869b;margin-top:5px}
-.upload input{display:none}
-.file-list{margin:13px 0 0;display:flex;flex-wrap:wrap;gap:8px}
-.thumb{display:flex;align-items:center;gap:8px;background:#f1f4f9;border-radius:9px;padding:7px 10px;font-size:12px;color:#455670;max-width:100%;word-break:break-all}
-.thumb img{height:34px;width:28px;border-radius:4px;object-fit:cover}
-.run{background:#ee625d;color:#fff;border:0;width:100%;font-size:16px;font-weight:800;border-radius:11px;padding:16px;margin-top:19px}
-.run:not(:disabled):hover{background:#db5451}
-.error{border-radius:11px;padding:13px 15px;background:#fff0ed;color:#9e3e36;border:1px solid #f2c6c0;font-size:13px;margin-top:15px}
-.status{background:#f1f5fa;border:1px solid #e0e7f0;color:#52667f;border-radius:11px;padding:12px 14px;margin-top:15px;font-size:13px}
-.progress{height:7px;background:#dfe6f0;margin-top:11px;border-radius:99px;overflow:hidden}
-.progress>div{height:100%;width:0%;background:#f06b63;transition:width .2s}
-.result{background:#f9fafc;border:1px solid #e1e8f1;border-radius:13px;padding:21px;margin-top:20px}
-.result h3{font-size:16px;margin:0 0 16px}
-.nums{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.metric{border:1px solid #e3e8f0;background:white;border-radius:11px;padding:15px}
-.metric strong{display:block;font-size:38px;letter-spacing:-.04em;line-height:1.1}
-.metric span{font-size:12px;color:#6f7d8f}
-.warning{background:#fff6e7;border-radius:10px;padding:12px 14px;color:#7b5a2e;font-size:12px;margin-top:14px}
-details{margin-top:15px}summary{font-size:13px;font-weight:750;cursor:pointer;color:#3f526d}
-.each-result{display:grid;gap:8px;margin-top:10px}.each-row{display:flex;align-items:center;justify-content:space-between;border:1px solid #e3e8f0;border-radius:9px;padding:10px 12px;font-size:12px;color:#576780;gap:10px}
-.each-row strong{font-size:12px;white-space:nowrap}
-.note-card{background:white;border:1px solid #e5eaf0;border-radius:14px;padding:20px;margin-bottom:17px}
-.note-card h3{margin:0 0 9px;font-size:15px}.note-card p{color:#66758b;font-size:13px;line-height:1.65;margin:0}
-.footer{font-size:12px;text-align:center;color:#8894a2;padding:5px 20px 30px}
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f5f7fb;color:#142238;line-height:1.5}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.65}
+.header{background:#11223b;color:white;padding:26px 22px 121px}.container{max-width:870px;margin:auto}.brand{display:flex;gap:10px;align-items:center;font-weight:800;font-size:16px}.brandmark{display:grid;place-items:center;background:#f26a62;border-radius:9px;width:32px;height:32px;font-size:22px}
+.eyebrow{font-size:12px;letter-spacing:.1em;color:#ffaaa5;text-transform:uppercase;font-weight:800;margin:54px 0 13px}
+h1{font-size:clamp(31px,5vw,49px);letter-spacing:-.04em;line-height:1.12;margin:0 0 18px}
+.lead{color:#c6cddd;font-size:16px;max-width:580px;margin:0}.main{max-width:870px;margin:-72px auto 45px;padding:0 16px}
+.panel{background:white;border:1px solid #e4e9f0;box-shadow:0 15px 45px #0c213c15;border-radius:17px;padding:31px}
+h2{font-size:22px;letter-spacing:-.03em;margin:0 0 6px}.sub{font-size:14px;color:#718095;margin:0 0 22px}
+.label{font-size:13px;font-weight:750;display:block;margin-bottom:9px}.row{display:flex;gap:9px}
+input{padding:15px 17px;border:1px solid #cbd6e4;border-radius:11px;flex:1;min-width:0;background:#fff;outline:none;font-size:14px}
+input:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed666021}
+.cta{border:0;background:#ef635e;border-radius:11px;padding:0 22px;white-space:nowrap;color:#fff;font-weight:800;font-size:14px}.cta:hover:not(:disabled){background:#db5752}
+.hint{font-size:12px;color:#8792a1;margin:12px 0 0}.status{font-size:12px;margin-bottom:20px;font-weight:750;display:inline-flex;align-items:center;gap:7px;color:#5e6f85}.dot{display:inline-block;border-radius:100%;width:9px;height:9px;background:#ed9a35}
+.status.ready .dot{background:#21a365}.status.blocked .dot{background:#d26c49}
+.error{margin-top:22px;background:#fff0ee;border:1px solid #f2c8c2;border-radius:11px;color:#9d3d35;padding:14px 16px;font-size:13px}
+.result{margin-top:25px;border:1px solid #e2e8ef;border-radius:14px;padding:21px;background:#f9fafc}
+.result-head{font-weight:800;font-size:16px;margin:0 0 17px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.stat{padding:17px;background:#fff;border:1px solid #e8edf3;border-radius:12px}
+.stat strong{font-size:37px;font-weight:850;line-height:1.15;display:block;letter-spacing:-.035em}.stat span{font-size:12px;color:#6e7c90}
+.meter{height:9px;overflow:hidden;border-radius:30px;background:#e4eaf1;margin-top:18px}.meter>div{height:100%;width:0;background:#ee6861}
+.disclaimer{color:#526579;font-size:13px;line-height:1.65;margin:14px 0 0}
+.info{margin-top:17px;border:1px solid #e5e9f0;background:#fff;border-radius:13px;padding:21px}
+.info h3{font-size:16px;margin:0 0 7px}.info p{font-size:13px;color:#6c798b;margin:0;line-height:1.7}
+.flow{display:flex;justify-content:space-between;gap:12px;margin-top:20px}.flow span{background:#f1f4f9;border-radius:9px;text-align:center;padding:11px;flex:1;font-size:12px;font-weight:750}
+.footer{font-size:12px;color:#8b95a2;text-align:center;margin-top:25px}
 .hidden{display:none!important}
-@media(max-width:580px){.header{padding:17px 17px 115px}.eyebrow{margin:39px 0 10px}.lead{font-size:14px}.container{padding:0 12px;margin-top:-82px}.panel{padding:22px 17px}.url-row{flex-direction:column}.link-btn{padding:12px}.upload{padding:22px 12px}.metric strong{font-size:31px}}
-</style>
-</head>
-<body>
-<header class="header"><div class="wrap">
-<div class="brand"><span class="logo">↗</span> Аналитика Авито</div>
-<div class="eyebrow">Бесплатно · С телефона и компьютера</div>
-<h1>Проверь продвижение<br>в выдаче Авито</h1>
-<p class="lead">Без регистрации, платных сервисов и установки расширений. Просто добавь скриншоты выдачи — проверим видимые отметки продвижения.</p>
+@media(max-width:610px){.header{padding:20px 16px 110px}.eyebrow{margin-top:38px}.lead{font-size:14px}.main{padding:0 11px}.panel{padding:23px 18px}.row{flex-direction:column}.cta{padding:15px}.stats{grid-template-columns:1fr}.stat strong{font-size:29px}.stat{padding:13px}.flow{flex-direction:column;gap:7px}}
+</style></head><body>
+<header class="header"><div class="container">
+<div class="brand"><span class="brandmark">↗</span> Аналитика Авито</div>
+<p class="eyebrow">Инструмент 01 · Первая страница выдачи</p>
+<h1>Сколько объявлений<br>продвигается на Авито?</h1>
+<p class="lead">Вставь ссылку на поисковую выдачу — проверим объявления на первой странице и покажем обнаруженные признаки платного продвижения.</p>
 </div></header>
-<main class="wrap container">
+<main class="main">
 <section class="panel">
-<div class="pill">✓ Работает в мобильном браузере</div>
 <h2>Проверить выдачу</h2>
-<p class="hint">Подходит для скриншотов из приложения Авито, Chrome, Safari и других браузеров.</p>
-<div class="step"><span class="num">1</span>Открой выдачу Авито и сделай скриншоты</div>
-<div class="box">
-<div class="url-row">
-<input class="url" id="avitoUrl" type="url" placeholder="Ссылка на выдачу Авито (необязательно)" aria-label="Ссылка на выдачу Авито">
-<button type="button" class="link-btn" id="openAvito">Открыть Авито ↗</button>
+<p class="sub">Не нужно устанавливать приложения, делать скриншоты или регистрироваться.</p>
+<div class="status" id="status"><i class="dot"></i><span id="statusLabel">Проверяем подключение источника данных…</span></div>
+<form id="form">
+<label class="label" for="url">Ссылка на поисковую выдачу Авито</label>
+<div class="row">
+<input id="url" type="url" placeholder="https://www.avito.ru/moskva/predlozheniya_uslug?q=ремонт" autocomplete="url" required>
+<button type="submit" class="cta" id="run" disabled>Анализировать</button>
 </div>
-<p class="mini">Можно просто открыть приложение Авито. Чтобы проверить всю первую страницу, сделай длинный скриншот или несколько скриншотов без повторяющихся объявлений.</p>
-</div>
-<div class="step"><span class="num">2</span>Загрузи скриншоты сюда</div>
-<label class="upload" id="uploadArea">
-<span class="upload-icon">📸</span>
-<strong>Выбрать скриншоты</strong>
-<span class="sub">Нажми сюда или перетащи изображения · до 8 штук</span>
-<input type="file" id="screens" accept="image/png,image/jpeg,image/webp,image/*" multiple>
-</label>
-<div class="file-list" id="fileList" aria-live="polite"></div>
-<div class="step"><span class="num">3</span>Получить результат</div>
-<button class="run" id="run" disabled>Проверить продвижение</button>
+</form>
+<p class="hint">Город, категория и фильтры берутся из ссылки. Проверяется только первая страница.</p>
 <div class="error hidden" id="error" role="alert"></div>
-<div class="status hidden" id="status" aria-live="polite"><span id="statusText">Загрузка...</span><div class="progress"><div id="progressBar"></div></div></div>
 <div class="result hidden" id="result" aria-live="polite">
-<h3>Что удалось найти на скриншотах</h3>
-<div class="nums"><div class="metric"><strong id="promoted">0</strong><span>отметок «Продвинуто» / «Продвигается»</span></div><div class="metric"><strong id="ads">0</strong><span>надписей «Реклама» — отдельно</span></div></div>
-<div class="warning"><strong>Это предварительная оценка, не полный подсчёт платного продвижения.</strong> Мы распознаём только надписи, видимые на изображениях. Если Авито не показывает отметку, алгоритм не сможет узнать, было ли объявление продвинуто. «Реклама» не прибавляется к числу «Продвинуто».</div>
-<details><summary>Показать результат по каждому скриншоту</summary><div class="each-result" id="perFile"></div></details>
+<div class="result-head">Результат проверки</div>
+<div class="stats">
+ <div class="stat"><strong id="total">—</strong><span>Объявлений обнаружено</span></div>
+ <div class="stat"><strong id="promo">—</strong><span>С признаками продвижения</span></div>
+ <div class="stat"><strong id="unknown">—</strong><span>Статус неизвестен</span></div>
+</div>
+<div class="meter"><div id="fill"></div></div>
+<p class="disclaimer" id="note"></p>
+<p class="hint" id="checked"></p>
 </div>
 </section>
-<section class="note-card"><h3>Почему нельзя просто вставить ссылку?</h3>
-<p>Авито блокирует автоматические запросы с нашего бесплатного сервера. Поэтому по одной ссылке мы пока не можем получить достоверное число продвигаемых объявлений. Скриншоты — бесплатный способ проверить видимые отметки с любого устройства. Содержимое изображений обрабатывается прямо в твоём браузере, а не отправляется на наш сервер.</p></section>
-<div class="footer">Независимый инструмент · Не является официальным сервисом Авито · Данные проверяются на устройстве пользователя</div>
+<div class="info"><h3>Как работает проверка</h3>
+<p>Наш сайт запрашивает страницу через Geonode, затем ищет доступные признаки продвижения в данных объявлений. Если у части карточек нельзя подтвердить статус, мы показываем их отдельно. Это не официальная статистика Авито и не гарантия обнаружения каждого платного продвижения.</p>
+<div class="flow"><span>1. Вставить ссылку</span><span>2. Анализ первой страницы</span><span>3. Количество и статус проверки</span></div>
+</div>
+<p class="footer">Независимый инструмент · Не связан с Авито · Проверки ограничены бесплатным лимитом поставщика данных</p>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script>
 <script>
 (function(){
-'use strict';
-var $=function(id){return document.getElementById(id)};
-var selected=[],busy=false,OBJECTS=[];
-function fail(msg){$('error').textContent=msg;$('error').classList.remove('hidden')}
-function clear(){ $('error').classList.add('hidden'); $('result').classList.add('hidden'); $('status').classList.add('hidden');}
-function setFiles(files){
- if(busy)return;
- clear();
- var arr=Array.from(files||[]).filter(function(f){return /^image\/(png|jpeg|webp)/.test(f.type)});
- if(!arr.length)return fail('Выбери изображения PNG, JPG или WEBP.');
- if(arr.length>8)return fail('Можно выбрать не более 8 скриншотов за одну проверку.');
- if(arr.some(function(f){return f.size>15*1024*1024}))return fail('Один из скриншотов больше 15 МБ. Уменьши его и попробуй снова.');
- OBJECTS.forEach(URL.revokeObjectURL);OBJECTS=[];
- selected=arr;
- $('fileList').textContent='';
- selected.forEach(function(f){
- var object=URL.createObjectURL(f);OBJECTS.push(object);
- var d=document.createElement('div');d.className='thumb';
- var im=document.createElement('img');im.src=object;im.alt='';
- var s=document.createElement('span');s.textContent=f.name||'Скриншот';
- d.append(im,s);$('fileList').append(d);
- });
- $('run').disabled=false;
-}
-$('screens').addEventListener('change',function(e){setFiles(e.target.files)});
-['dragover','dragenter'].forEach(function(ev){$('uploadArea').addEventListener(ev,function(e){e.preventDefault();$('uploadArea').classList.add('drag')})});
-['dragleave','drop'].forEach(function(ev){$('uploadArea').addEventListener(ev,function(e){e.preventDefault();$('uploadArea').classList.remove('drag')})});
-$('uploadArea').addEventListener('drop',function(e){setFiles(e.dataTransfer.files)});
-$('openAvito').addEventListener('click',function(){
- var raw=$('avitoUrl').value.trim();
- if(!raw){window.open('https://www.avito.ru/','_blank','noopener');return;}
+const $=id=>document.getElementById(id);
+let configured=false;
+async function health(){
  try{
- var u=new URL(raw);
- if(!['avito.ru','www.avito.ru','m.avito.ru'].includes(u.hostname)||u.protocol!=='https:')throw Error('');
- window.open(u.href,'_blank','noopener');
- }catch(e){fail('Вставь корректную ссылку с https://www.avito.ru или оставь поле пустым.')}
+  const res=await fetch('/api/health',{cache:'no-store'});
+  if(!res.ok)throw Error('Сервер не отвечает');
+  const data=await res.json();
+  configured=Boolean(data.configured);
+  $('status').className='status '+(configured?'ready':'blocked');
+  $('statusLabel').textContent=configured?'Источник данных подключён':'Сервис настроен, ожидается подключение бесплатного ключа Geonode';
+  $('run').disabled=!configured;
+ }catch(e){$('status').className='status blocked';$('statusLabel').textContent='Не удалось проверить подключение';$('run').disabled=true;}
+}
+function error(msg){$('error').textContent=msg;$('error').classList.remove('hidden');$('result').classList.add('hidden')}
+function success(data){
+ $('error').classList.add('hidden');$('result').classList.remove('hidden');
+ $('total').textContent=data.total;$('promo').textContent=data.promoted;$('unknown').textContent=data.unknown;
+ $('fill').style.width=String(data.sharePercent||0)+'%';
+ $('note').textContent=data.note||'Результат отражает только обнаруженные признаки продвижения.';
+ $('checked').textContent='Проверено '+new Date(data.checkedAt).toLocaleString('ru-RU')+(data.fromCache?' · результат из кэша':'');
+ $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+$('form').addEventListener('submit',async function(ev){
+ ev.preventDefault();if(!configured)return error('Пока не подключён бесплатный ключ Geonode.');
+ const url=$('url').value.trim(),b=$('run');
+ let parsed;try{parsed=new URL(url)}catch{return error('Вставь полную ссылку на Авито.')}
+ if(parsed.protocol!=='https:'||!['avito.ru','www.avito.ru','m.avito.ru'].includes(parsed.hostname))return error('Подходит только ссылка на avito.ru.');
+ b.disabled=true;b.textContent='Проверяем…';$('error').classList.add('hidden');$('result').classList.add('hidden');
+ try{
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),90000);
+  let r;
+  try{r=await fetch('/api/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url}),signal:controller.signal})}finally{clearTimeout(timer)}
+  const data=await r.json();
+  if(!r.ok)throw Error(data.error||'Не получилось выполнить проверку.');
+  success(data);
+ }catch(e){error(e.name==='AbortError'?'Проверка заняла слишком много времени. Попробуй ещё раз.':e.message)}
+ finally{b.disabled=!configured;b.textContent='Анализировать'}
 });
-function countText(text){
- var t=(text||'').toLowerCase().replace(/ё/g,'е').replace(/\u00ad/g,'');
- var promo=(t.match(/(?:^|[^а-я])(?:продвинуто|продвигается|продвигаемое)(?=[^а-я]|$)/gmu)||[]).length;
- var ads=(t.match(/(?:^|[^а-я])реклама(?=[^а-я]|$)/gmu)||[]).length;
- return {promo:promo,ads:ads};
-}
-function setProgress(text,pct){
- $('status').classList.remove('hidden');
- $('statusText').textContent=text;
- $('progressBar').style.width=Math.min(100,Math.max(0,pct))+'%';
-}
-async function slices(file){
- var url=URL.createObjectURL(file);
- try{
-  var im=await new Promise(function(ok,bad){var image=new Image();image.onload=function(){ok(image)};image.onerror=function(){bad(Error('Не удалось открыть изображение.'))};image.src=url});
-  var width=im.naturalWidth,height=im.naturalHeight;
-  if(!width||!height)throw Error('Пустое изображение.');
-  if(width*height>120000000)throw Error('Слишком длинный скриншот — раздели его на два.');
-  var scale=Math.min(1,1600/width),w=Math.round(width*scale),h=Math.round(height*scale);
-  var size=1900,tiles=[];
-  for(var sy=0;sy<h;sy+=size){
-   var hh=Math.min(size,h-sy);
-   var canvas=document.createElement('canvas');canvas.width=w;canvas.height=hh;
-   var ctx=canvas.getContext('2d',{willReadFrequently:true});
-   ctx.fillStyle='white';ctx.fillRect(0,0,w,hh);
-   ctx.drawImage(im,0,sy/scale,width,hh/scale,0,0,w,hh);
-   tiles.push(canvas);
-  }
-  return tiles;
- }finally{URL.revokeObjectURL(url)}
-}
-$('run').addEventListener('click',async function(){
- if(busy||!selected.length)return;
- busy=true;$('run').disabled=true;$('run').textContent='Анализируем изображения…';clear();
- var worker=null;
- try{
-  if(!window.Tesseract||!window.Tesseract.createWorker)throw Error('Не удалось загрузить распознавание текста. Проверь интернет-соединение и попробуй ещё раз.');
-  setProgress('Подготавливаем распознавание русского текста…',2);
-  worker=await Tesseract.createWorker('rus+eng',1,{logger:function(m){
-   if(m.status==='loading language traineddata'||m.status==='initializing api')$('statusText').textContent='Загружаем модуль распознавания…';
-  }});
-  var totalPromo=0,totalAds=0,found=[];
-  for(var i=0;i<selected.length;i++){
-   var file=selected[i],chunks=await slices(file),p=0,a=0;
-   for(var j=0;j<chunks.length;j++){
-    setProgress('Скриншот '+(i+1)+' из '+selected.length+' · фрагмент '+(j+1)+' из '+chunks.length,Math.round((i+(j/chunks.length))/selected.length*100));
-    var r=await worker.recognize(chunks[j]);
-    var data=countText(r.data.text);
-    p+=data.promo;a+=data.ads;
-    chunks[j].width=0;chunks[j].height=0;
-   }
-   totalPromo+=p;totalAds+=a;
-   found.push({name:file.name||'Скриншот '+(i+1),promo:p,ads:a});
-  }
-  $('promoted').textContent=totalPromo;
-  $('ads').textContent=totalAds;
-  $('perFile').textContent='';
-  found.forEach(function(item){
-   var div=document.createElement('div');div.className='each-row';
-   var name=document.createElement('span');name.textContent=item.name;
-   var stats=document.createElement('strong');stats.textContent=item.promo+' продв. · '+item.ads+' рекл.';
-   div.append(name,stats);$('perFile').append(div);
-  });
-  $('status').classList.add('hidden');$('result').classList.remove('hidden');
-  $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
- }catch(e){$('status').classList.add('hidden');fail((e&&e.message)||'Не получилось распознать текст. Попробуй другие скриншоты.');}
- finally{
-  if(worker)try{await worker.terminate()}catch(e){}
-  busy=false;$('run').disabled=!selected.length;$('run').textContent='Проверить продвижение';
- }
-});
+health();
 })();
 </script>
 </body></html>
