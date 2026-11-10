@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#131f35"><meta name="description" content="Счётчик продвигаемых объявлений на первой странице Авито">
+<title>Аналитика выдачи Авито — продвигаемые объявления</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#16243c;background:#f7f8fa;line-height:1.5}
+*{box-sizing:border-box}body{margin:0}.hero{background:#111e34;color:#fff;padding:25px 24px 110px}.container{max-width:940px;margin:0 auto}
+.brand{font-weight:800;display:flex;align-items:center;gap:11px;letter-spacing:-.02em;font-size:17px}.mark{display:grid;place-items:center;background:#f26b65;border-radius:10px;width:31px;height:31px;transform:rotate(-6deg)}
+.tag{font-size:12px;color:#ffbbb2;font-weight:750;letter-spacing:.09em;text-transform:uppercase;margin:51px 0 12px}
+h1{font-size:clamp(31px,5.5vw,53px);letter-spacing:-.055em;line-height:1.08;margin:0 0 16px;max-width:750px}
+.lead{font-size:16px;color:#c4ccda;max-width:610px;margin:0}.main{padding:0 24px 44px}.panel{position:relative;margin-top:-70px;background:#fff;border-radius:18px;padding:31px;box-shadow:0 16px 48px #101d3214;border:1px solid #ebedf2}
+h2{font-size:19px;letter-spacing:-.02em;margin:0 0 6px}.muted{color:#6b7585;font-size:14px;margin:0 0 22px}.field-label{font-weight:750;font-size:13px;display:block;margin-bottom:8px}
+.line{display:flex;gap:10px}.url{flex:1;min-width:0;border:1px solid #ccd4df;border-radius:11px;padding:16px;font-size:14px;outline:none}.url:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed666023}
+button{cursor:pointer;border:0;border-radius:11px;font-weight:750;font:inherit;font-size:14px}button:disabled{opacity:.6;cursor:wait}.main-button{background:#ee615c;color:#fff;padding:0 23px;font-weight:750}.main-button:hover{background:#dc514c}
+.hint{font-size:12px;color:#818b9a;margin:13px 0}.hidden{display:none}.error{padding:15px;background:#fff3f0;color:#8a322b;border:1px solid #f6c5bc;border-radius:12px;margin-top:18px;font-size:13px}
+.result{border-radius:14px;background:#f9fafc;border:1px solid #e3e8ef;padding:20px;margin-top:22px}.result-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#67748a}
+.pill{background:#e7f4eb;color:#257247;border-radius:40px;padding:5px 10px;font-weight:750}.pill.partial{background:#fff1db;color:#9a5a14}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:17px}.stat{border-radius:12px;padding:15px;background:white;border:1px solid #e7eaf1}.number{font-size:35px;font-weight:850;letter-spacing:-.05em;line-height:1.2}.stat small{display:block;font-size:12px;color:#687488;margin-top:8px}
+.meter{height:9px;background:#e8ebf0;border-radius:20px;margin-top:20px;overflow:hidden}.fill{height:100%;width:0;background:#ed6761;transition:width .25s}
+.note{font-size:12px;color:#697589;margin:14px 0 0}.fallback{margin:15px 0 0;border:1px dashed #d6dce4;background:#f8f9fb;border-radius:12px;padding:15px 18px}
+summary{cursor:pointer;font-size:13px;font-weight:750}.fallback p{font-size:13px;color:#6d7788;line-height:1.65}.file-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}input[type=file]{font-size:13px;max-width:100%}.secondary{background:#e6eaf2;padding:11px 16px;color:#293952;font-weight:750}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}.info{background:white;border:1px solid #e5e9ef;border-radius:14px;padding:22px}.info h3{font-size:15px;margin:0 0 9px}.info p{font-size:13px;line-height:1.7;color:#6c7687;margin:0}.footer{text-align:center;font-size:12px;color:#8b95a2;margin-top:25px}
+@media(max-width:650px){.hero{padding:23px 17px 105px}.main{padding:0 13px 35px}.panel{padding:23px 18px}.tag{margin-top:35px}.lead{font-size:14px}.line{flex-direction:column}.main-button{padding:16px}.cols{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.stat{padding:13px}.number{font-size:28px}}
+</style></head><body>
+<header class="hero"><div class="container"><div class="brand"><span class="mark">↗</span> Аналитика выдачи</div>
+<p class="tag">Инструмент 01 / Авито</p><h1>Сколько объявлений<br>продвигается в выдаче?</h1>
+<p class="lead">Вставьте ссылку на поиск Авито. Проверим первую страницу и посчитаем объявления с обнаруженными признаками платного продвижения.</p>
+</div></header>
+<main class="main"><div class="container"><section class="panel">
+<h2>Проверить поисковую выдачу</h2><p class="muted">Учитываем город, категорию и фильтры из ссылки. Анализируем только первую страницу.</p>
+<form id="form"><label class="field-label" for="url">Ссылка на Авито</label><div class="line"><input class="url" id="url" type="url" placeholder="https://www.avito.ru/moskva?q=ремонт" autocomplete="url" required><button class="main-button" type="submit" id="run">Проверить выдачу</button></div></form>
+<p class="hint">Регистрация и доступ к вашему аккаунту Авито не нужны.</p>
+<div id="error" class="error hidden" role="alert"></div>
+<div class="result hidden" id="result" aria-live="polite"><div class="result-top"><span id="checked"></span><span class="pill" id="pill"></span></div>
+<div class="stats"><div class="stat"><div class="number" id="total">—</div><small>Всего объявлений найдено</small></div>
+<div class="stat"><div class="number" id="promoted">—</div><small>С признаками продвижения</small></div>
+<div class="stat"><div class="number" id="share">—</div><small>Доля обнаруженного продвижения</small></div></div>
+<div class="meter"><div class="fill" id="fill"></div></div><p class="note" id="note"></p></div>
+<details class="fallback"><summary>Если Авито не открылся: проверка сохранённой страницы</summary>
+<p>Откройте выдачу в своём браузере на компьютере, нажмите <b>Ctrl+S</b> и сохраните «Веб-страница, только HTML». Вставьте ту же ссылку в поле выше и загрузите сохранённый файл. Не отправляйте HTML личных кабинетов или страниц с личными данными.</p>
+<div class="file-row"><input type="file" accept=".html,.htm,text/html" id="html-file"><button class="secondary" type="button" id="upload">Проверить HTML</button></div></details>
+</section>
+<div class="cols"><div class="info"><h3>Что считается продвижением?</h3><p>Метки «Продвинуто», данные о платных опциях и другие явные признаки на карточке. Рекламные баннеры не приравниваем к продвижению объявлений.</p></div>
+<div class="info"><h3>Можно ли доверять результату?</h3><p>Авито может ограничивать автоматические запросы. Неполный результат будет помечен: неизвестные статусы нельзя автоматически считать обычными объявлениями.</p></div></div>
+<p class="footer">Независимый аналитический инструмент. Не является официальным сервисом Авито.</p>
+</div></main>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+function error(s){$('error').textContent=s;$('error').classList.remove('hidden');$('result').classList.add('hidden')}
+function show(r){$('error').classList.add('hidden');$('result').classList.remove('hidden');
+$('total').textContent=r.total;$('promoted').textContent=r.promoted;$('share').textContent=r.sharePercent+'%';
+$('fill').style.width=r.sharePercent+'%';$('checked').textContent='Проверено '+new Date(r.checkedAt).toLocaleString('ru-RU');
+$('pill').textContent=r.complete?'Полный результат':'Частичный результат';$('pill').classList.toggle('partial',!r.complete);
+$('note').textContent=r.note;$('result').scrollIntoView({behavior:'smooth',block:'nearest'});}
+async function send(route,body){let res=await fetch(route,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),data=await res.json();if(!res.ok)throw Error(data.error||'Ошибка анализа страницы');return data;}
+async function go(btn,make){btn.disabled=true;const original=btn.textContent;btn.textContent='Проверяем...';$('error').classList.add('hidden');try{show(await make())}catch(e){error(e.message)}finally{btn.disabled=false;btn.textContent=original;}}
+$('form').addEventListener('submit',e=>{e.preventDefault();go($('run'),()=>send('/api/check',{url:$('url').value.trim()}))});
+$('upload').addEventListener('click',()=>{const f=$('html-file').files[0];if(!f)return error('Выберите сохранённый HTML-файл.');if(!$('url').value.trim())return error('Сначала вставьте ссылку на выдачу.');if(f.size>8000000)return error('HTML-файл должен быть меньше 8 МБ.');go($('upload'),async()=>send('/api/check-html',{url:$('url').value.trim(),html:await f.text()}))});
+})();
+</script></body></html>
