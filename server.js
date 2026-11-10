@@ -3,6 +3,7 @@ const http=require('node:http');
 const fs=require('node:fs');
 const path=require('node:path');
 const PAGE=fs.readFileSync(path.join(__dirname,'index.html'));
+const BOOKMARKLET=fs.readFileSync(path.join(__dirname,'bookmarklet.js'),'utf8').trim();
 const hits=new Map();
 function respond(res,code,obj){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(obj));}
 function valid(raw){
@@ -174,6 +175,7 @@ async function analyzeWithProvider(url){
 
 http.createServer(async(req,res)=>{
  const route=new URL(req.url||'/', 'http://localhost').pathname;
+ if(req.method==='GET'&&route==='/api/bookmarklet')return respond(res,200,{code:'javascript:'+BOOKMARKLET});
  if(req.method==='GET'&&route==='/api/health')return respond(res,200,{ok:true,version:'1.0.0'});
  if(req.method==='GET'&&route==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(PAGE);}
  if(req.method==='POST'&&(route==='/api/check'||route==='/api/check-html')){
