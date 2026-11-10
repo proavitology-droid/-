@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(x=>x[1]).filter(x=>x.trim());
+assert(inline.length>0,'No inline frontend script');
+for(const [i,js] of inline.entries())new vm.Script(js,{filename:'index.html:script'+(i+1)});
+assert(html.includes('id="screens"'),'File input missing');
+assert(html.includes('id="run"'),'Action button missing');
+assert(html.includes('id="result"'),'Result container missing');
+assert(html.includes('tesseract.min.js'),'OCR dependency missing');
+console.log('Frontend HTML and scripts parsed successfully');
