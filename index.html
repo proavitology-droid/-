@@ -1,62 +1,120 @@
 <!doctype html>
-<html lang="ru"><head>
+<html lang="ru">
+<head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#131f35"><meta name="description" content="Счётчик продвигаемых объявлений на первой странице Авито">
-<title>Аналитика выдачи Авито — продвигаемые объявления</title>
+<meta name="theme-color" content="#10213a">
+<meta name="description" content="Бесплатная проверка продвижения объявлений в поисковой выдаче Авито. Без регистрации и API.">
+<title>Бесплатный анализ продвижения в выдаче Авито</title>
 <style>
-:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#16243c;background:#f7f8fa;line-height:1.5}
-*{box-sizing:border-box}body{margin:0}.hero{background:#111e34;color:#fff;padding:25px 24px 110px}.container{max-width:940px;margin:0 auto}
-.brand{font-weight:800;display:flex;align-items:center;gap:11px;letter-spacing:-.02em;font-size:17px}.mark{display:grid;place-items:center;background:#f26b65;border-radius:10px;width:31px;height:31px;transform:rotate(-6deg)}
-.tag{font-size:12px;color:#ffbbb2;font-weight:750;letter-spacing:.09em;text-transform:uppercase;margin:51px 0 12px}
-h1{font-size:clamp(31px,5.5vw,53px);letter-spacing:-.055em;line-height:1.08;margin:0 0 16px;max-width:750px}
-.lead{font-size:16px;color:#c4ccda;max-width:610px;margin:0}.main{padding:0 24px 44px}.panel{position:relative;margin-top:-70px;background:#fff;border-radius:18px;padding:31px;box-shadow:0 16px 48px #101d3214;border:1px solid #ebedf2}
-h2{font-size:19px;letter-spacing:-.02em;margin:0 0 6px}.muted{color:#6b7585;font-size:14px;margin:0 0 22px}.field-label{font-weight:750;font-size:13px;display:block;margin-bottom:8px}
-.line{display:flex;gap:10px}.url{flex:1;min-width:0;border:1px solid #ccd4df;border-radius:11px;padding:16px;font-size:14px;outline:none}.url:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed666023}
-button{cursor:pointer;border:0;border-radius:11px;font-weight:750;font:inherit;font-size:14px}button:disabled{opacity:.6;cursor:wait}.main-button{background:#ee615c;color:#fff;padding:0 23px;font-weight:750}.main-button:hover{background:#dc514c}
-.hint{font-size:12px;color:#818b9a;margin:13px 0}.hidden{display:none}.error{padding:15px;background:#fff3f0;color:#8a322b;border:1px solid #f6c5bc;border-radius:12px;margin-top:18px;font-size:13px}
-.result{border-radius:14px;background:#f9fafc;border:1px solid #e3e8ef;padding:20px;margin-top:22px}.result-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#67748a}
-.pill{background:#e7f4eb;color:#257247;border-radius:40px;padding:5px 10px;font-weight:750}.pill.partial{background:#fff1db;color:#9a5a14}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:17px}.stat{border-radius:12px;padding:15px;background:white;border:1px solid #e7eaf1}.number{font-size:35px;font-weight:850;letter-spacing:-.05em;line-height:1.2}.stat small{display:block;font-size:12px;color:#687488;margin-top:8px}
-.meter{height:9px;background:#e8ebf0;border-radius:20px;margin-top:20px;overflow:hidden}.fill{height:100%;width:0;background:#ed6761;transition:width .25s}
-.note{font-size:12px;color:#697589;margin:14px 0 0}.fallback{margin:15px 0 0;border:1px dashed #d6dce4;background:#f8f9fb;border-radius:12px;padding:15px 18px}
-summary{cursor:pointer;font-size:13px;font-weight:750}.fallback p{font-size:13px;color:#6d7788;line-height:1.65}.file-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}input[type=file]{font-size:13px;max-width:100%}.secondary{background:#e6eaf2;padding:11px 16px;color:#293952;font-weight:750}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}.info{background:white;border:1px solid #e5e9ef;border-radius:14px;padding:22px}.info h3{font-size:15px;margin:0 0 9px}.info p{font-size:13px;line-height:1.7;color:#6c7687;margin:0}.footer{text-align:center;font-size:12px;color:#8b95a2;margin-top:25px}
-@media(max-width:650px){.hero{padding:23px 17px 105px}.main{padding:0 13px 35px}.panel{padding:23px 18px}.tag{margin-top:35px}.lead{font-size:14px}.line{flex-direction:column}.main-button{padding:16px}.cols{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.stat{padding:13px}.number{font-size:28px}}
-</style></head><body>
-<header class="hero"><div class="container"><div class="brand"><span class="mark">↗</span> Аналитика выдачи</div>
-<p class="tag">Инструмент 01 / Авито</p><h1>Сколько объявлений<br>продвигается в выдаче?</h1>
-<p class="lead">Вставьте ссылку на поиск Авито. Проверим первую страницу и посчитаем объявления с обнаруженными признаками платного продвижения.</p>
+:root{font-family:Inter,Arial,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fb;color:#13213a}
+*{box-sizing:border-box}body{margin:0;line-height:1.5}button,input{font:inherit}a{color:inherit}
+.shell{width:min(1030px,calc(100% - 38px));margin:auto}.hero{background:#10213a;color:white;padding:25px 0 108px}
+.nav{font-size:16px;font-weight:800;display:flex;align-items:center;gap:10px}.logo{width:32px;height:32px;border-radius:9px;background:#f06661;color:white;display:grid;place-items:center;font-size:22px}
+.eyebrow{text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:#ffa8a1;font-weight:800;margin:50px 0 13px}
+h1{font-size:clamp(31px,5.3vw,52px);max-width:730px;line-height:1.1;letter-spacing:-.045em;margin:0 0 17px}p.lead{font-size:16px;color:#c5cfdd;margin:0;max-width:680px}
+.main{margin-top:-65px;padding-bottom:45px}.card{background:#fff;border:1px solid #e7eaf1;border-radius:17px;padding:27px 31px;box-shadow:0 10px 34px #152a4b0a;margin-bottom:20px}
+h2{font-size:22px;letter-spacing:-.025em;margin:0 0 6px}.sub{font-size:14px;color:#66748b;margin:0 0 18px}.step{display:inline-grid;place-items:center;width:29px;height:29px;background:#ecf0f8;color:#243f64;border-radius:9px;font-weight:800;font-size:13px;margin-right:10px}
+.hd{display:flex;align-items:center;margin:0 0 9px}.hd strong{font-size:17px}.small{font-size:13px;color:#6e7b8d}
+.install-area{background:#f7f9fc;border:1px dashed #c7d2e3;border-radius:14px;padding:17px;margin:18px 0 12px}
+.drag-zone{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.bookmark{background:#ef655e;color:#fff;font-weight:800;padding:15px 22px;text-decoration:none;border-radius:11px;display:inline-block;cursor:grab;user-select:none;box-shadow:0 6px 16px #ed655e33}
+.bookmark:active{cursor:grabbing}.bookmark[aria-disabled="true"]{opacity:.65;pointer-events:none}
+.helper{font-size:13px;max-width:365px;color:#61738c}.keys{display:inline-flex;gap:4px;align-items:center}.keys kbd{border:1px solid #cdd5e0;background:white;border-bottom-width:2px;border-radius:5px;padding:2px 7px;font:700 12px monospace;color:#283c54}
+.secondary{border:0;background:#edf1f7;color:#28405f;border-radius:9px;padding:10px 14px;font-weight:700;font-size:12px;cursor:pointer}
+.guide{display:flex;align-items:center;gap:8px;background:#fdf5ed;border-radius:10px;padding:11px 13px;font-size:13px;color:#7e5b2c;margin-top:11px}
+.sep{height:1px;background:#edf0f4;margin:23px 0}
+.row{display:flex;gap:11px}.url{width:100%;min-width:0;border-radius:10px;border:1px solid #cbd3df;padding:15px;font-size:14px;outline:none}.url:focus{border-color:#f06661;box-shadow:0 0 0 3px #ee635e21}
+.open{border:0;cursor:pointer;border-radius:10px;padding:0 23px;white-space:nowrap;background:#10213a;color:white;font-weight:800;font-size:14px}.open:hover{background:#253b58}
+.form-error{color:#bb3832;font-size:12px;min-height:19px;margin-top:6px}
+.check-note{margin-top:18px;background:#eef8f0;border-radius:10px;padding:13px 15px;color:#265e38;font-size:13px}
+.preview-layout{display:grid;grid-template-columns:1fr 1fr;gap:19px}.preview{border-radius:13px;padding:22px;border:1px solid #e4eaf2;background:#fff}.preview-title{font-weight:800;margin-bottom:8px}.num{font-size:38px;font-weight:900;letter-spacing:-.05em;line-height:1.1}.tag{font-size:12px;color:#617289}.preview-detail{border-top:1px solid #e8eaf0;padding-top:10px;margin-top:15px;font-size:12px;color:#66748a}
+blockquote{margin:0}.warning{border-radius:12px;background:#fff7eb;padding:15px 17px;font-size:13px;color:#755b32;line-height:1.65}.footer{font-size:12px;color:#8795a5;text-align:center;margin-top:24px}
+details{font-size:13px;color:#5a687b}summary{cursor:pointer;font-weight:750;color:#243955;margin-bottom:11px}details p{line-height:1.6}
+.link{color:#c84842;text-underline-offset:3px}.faq{margin-top:20px}
+@media(max-width:680px){.shell{width:min(100% - 24px,1030px)}.hero{padding:22px 0 95px}.eyebrow{margin-top:34px}.lead{font-size:14px!important}.card{padding:20px}.row{flex-direction:column}.open{padding:14px}.preview-layout{grid-template-columns:1fr}.drag-zone{align-items:flex-start}.bookmark{max-width:100%;text-align:center}}
+</style></head>
+<body>
+<header class="hero"><div class="shell">
+  <div class="nav"><span class="logo">↗</span> Аналитика Авито</div>
+  <div class="eyebrow">Бесплатный инструмент · версия 1.1</div>
+  <h1>Посчитай продвижение<br>в выдаче Авито</h1>
+  <p class="lead">Открой поисковую выдачу и нажми одну кнопку. Всё работает в твоём браузере — без регистрации, оплаты и передачи объявлений на наш сервер.</p>
 </div></header>
-<main class="main"><div class="container"><section class="panel">
-<h2>Проверить поисковую выдачу</h2><p class="muted">Учитываем город, категорию и фильтры из ссылки. Анализируем только первую страницу.</p>
-<form id="form"><label class="field-label" for="url">Ссылка на Авито</label><div class="line"><input class="url" id="url" type="url" placeholder="https://www.avito.ru/moskva?q=ремонт" autocomplete="url" required><button class="main-button" type="submit" id="run">Проверить выдачу</button></div></form>
-<p class="hint">Регистрация и доступ к вашему аккаунту Авито не нужны.</p>
-<div id="error" class="error hidden" role="alert"></div>
-<div class="result hidden" id="result" aria-live="polite"><div class="result-top"><span id="checked"></span><span class="pill" id="pill"></span></div>
-<div class="stats"><div class="stat"><div class="number" id="total">—</div><small>Всего объявлений найдено</small></div>
-<div class="stat"><div class="number" id="promoted">—</div><small>С признаками продвижения</small></div>
-<div class="stat"><div class="number" id="share">—</div><small>Доля обнаруженного продвижения</small></div></div>
-<div class="meter"><div class="fill" id="fill"></div></div><p class="note" id="note"></p></div>
-<details class="fallback"><summary>Если Авито не открылся: проверка сохранённой страницы</summary>
-<p>Откройте выдачу в своём браузере на компьютере, нажмите <b>Ctrl+S</b> и сохраните «Веб-страница, только HTML». Вставьте ту же ссылку в поле выше и загрузите сохранённый файл. Не отправляйте HTML личных кабинетов или страниц с личными данными.</p>
-<div class="file-row"><input type="file" accept=".html,.htm,text/html" id="html-file"><button class="secondary" type="button" id="upload">Проверить HTML</button></div></details>
-</section>
-<div class="cols"><div class="info"><h3>Что считается продвижением?</h3><p>Метки «Продвинуто», данные о платных опциях и другие явные признаки на карточке. Рекламные баннеры не приравниваем к продвижению объявлений.</p></div>
-<div class="info"><h3>Можно ли доверять результату?</h3><p>Авито может ограничивать автоматические запросы. Неполный результат будет помечен: неизвестные статусы нельзя автоматически считать обычными объявлениями.</p></div></div>
-<p class="footer">Независимый аналитический инструмент. Не является официальным сервисом Авито.</p>
-</div></main>
+<main class="shell main">
+  <section class="card" id="install">
+    <div class="hd"><span class="step">1</span><strong>Один раз добавь кнопку в закладки</strong></div>
+    <p class="sub">Работает на компьютере в Google Chrome или Microsoft Edge.</p>
+    <p class="small">Сначала покажи панель закладок в браузере: <span class="keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></span></p>
+    <div class="install-area">
+      <div class="drag-zone">
+        <a class="bookmark" id="bookmark" aria-disabled="true" href="#" draggable="true">↗ Посчитать продвижение</a>
+        <div class="helper"><b>Зажми кнопку мышкой и перетащи её вверх на панель закладок.</b> Там она останется для следующих проверок.</div>
+      </div>
+      <div class="guide">💡 Кнопку нужно именно перетащить, а не нажать.</div>
+    </div>
+    <button class="secondary" type="button" id="copy">Не получается перетащить? Скопировать код</button>
+    <p class="small" id="copy-note" aria-live="polite" style="margin:8px 0 0"></p>
+    <div class="sep"></div>
+    <div class="hd"><span class="step">2</span><strong>Открой нужную выдачу Авито</strong></div>
+    <p class="sub">Вставь ссылку на поиск с нужными городом, категорией и фильтрами.</p>
+    <form id="searchform"><div class="row">
+      <input class="url" id="avito-url" type="url" required autocomplete="url" placeholder="https://www.avito.ru/moskva/predlozheniya_uslug?q=ремонт" aria-label="Ссылка на поисковую выдачу Авито">
+      <button class="open" type="submit">Открыть Авито ↗</button>
+    </div><div id="form-error" class="form-error" role="alert"></div></form>
+    <div class="sep"></div>
+    <div class="hd"><span class="step">3</span><strong>Нажми «Посчитать продвижение» в закладках</strong></div>
+    <p class="sub" style="margin:0">На странице Авито нажми сохранённую кнопку. Результат появится прямо поверх выдачи. Для более полного подсчёта нажми там «Прогрузить карточки».</p>
+    <div class="check-note">✓ Ничего устанавливать из магазинов расширений не нужно. Кнопка не требует доступа к аккаунту Авито.</div>
+  </section>
+  <section class="preview-layout">
+    <div class="preview">
+      <div class="preview-title">Как выглядит результат</div>
+      <div class="tag" style="margin-bottom:10px">Пример — цифры условные</div>
+      <div class="num">8</div>
+      <div class="tag">объявлений с признаками продвижения</div>
+      <div class="preview-detail">Всего найдено: 50 · Без подтверждения статуса: 22</div>
+    </div>
+    <div class="warning">
+      <b>Важно про точность</b>
+      <p>Авито не всегда показывает, продвигается ли конкретное объявление. Мы считаем только найденные подтверждения и отдельно показываем карточки с неизвестным статусом. Если показан ноль, это не всегда означает отсутствие платного продвижения.</p>
+      <p style="margin-bottom:0">Выдача может отличаться у разных людей. Этот бесплатный способ проверяет именно страницу, открывшуюся у тебя.</p>
+    </div>
+  </section>
+  <div class="faq">
+    <details><summary>Не получается перетащить кнопку?</summary>
+      <p>Нажми «Скопировать код». Открой меню закладок браузера и создай новую закладку с названием <b>Посчитать продвижение</b>. В поле адреса (URL) вставь скопированный код вместо адреса сайта. Сохрани закладку и нажми её, когда открыта выдача Авито.</p>
+      <p>Кнопка-закладка работает на компьютере. На телефоне этот вариант обычно не подходит.</p>
+    </details>
+  </div>
+  <div class="footer">Независимый инструмент, не связан с Авито. Признаки продвижения читаются на текущей странице в браузере, без отправки данных на наш сервер.</div>
+</main>
 <script>
 (function(){
-const $=id=>document.getElementById(id);
-function error(s){$('error').textContent=s;$('error').classList.remove('hidden');$('result').classList.add('hidden')}
-function show(r){$('error').classList.add('hidden');$('result').classList.remove('hidden');
-$('total').textContent=r.total;$('promoted').textContent=r.promoted;$('share').textContent=r.sharePercent+'%';
-$('fill').style.width=r.sharePercent+'%';$('checked').textContent='Проверено '+new Date(r.checkedAt).toLocaleString('ru-RU');
-$('pill').textContent=r.complete?'Полный результат':'Частичный результат';$('pill').classList.toggle('partial',!r.complete);
-$('note').textContent=r.note;$('result').scrollIntoView({behavior:'smooth',block:'nearest'});}
-async function send(route,body){let res=await fetch(route,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),data=await res.json();if(!res.ok)throw Error(data.error||'Ошибка анализа страницы');return data;}
-async function go(btn,make){btn.disabled=true;const original=btn.textContent;btn.textContent='Проверяем...';$('error').classList.add('hidden');try{show(await make())}catch(e){error(e.message)}finally{btn.disabled=false;btn.textContent=original;}}
-$('form').addEventListener('submit',e=>{e.preventDefault();go($('run'),()=>send('/api/check',{url:$('url').value.trim()}))});
-$('upload').addEventListener('click',()=>{const f=$('html-file').files[0];if(!f)return error('Выберите сохранённый HTML-файл.');if(!$('url').value.trim())return error('Сначала вставьте ссылку на выдачу.');if(f.size>8000000)return error('HTML-файл должен быть меньше 8 МБ.');go($('upload'),async()=>send('/api/check-html',{url:$('url').value.trim(),html:await f.text()}))});
+ var code='',btn=document.getElementById('bookmark'),copier=document.getElementById('copy'),message=document.getElementById('copy-note');
+ fetch('/api/bookmarklet').then(function(r){if(!r.ok)throw Error('Не удалось загрузить кнопку');return r.json()}).then(function(r){
+   if(typeof r.code!=='string'||!r.code.startsWith('javascript:'))throw Error('Код кнопки недоступен');
+   code=r.code;btn.href=code;btn.setAttribute('aria-disabled','false');message.textContent='';
+ }).catch(function(e){message.textContent='Не удалось подготовить кнопку. Обнови страницу и попробуй снова.';btn.style.opacity='.55'});
+ btn.addEventListener('click',function(e){e.preventDefault();message.textContent='Кнопку нужно перетащить в панель закладок, а не нажимать на сайте.'});
+ copier.addEventListener('click',async function(){
+   if(!code){message.textContent='Код ещё не загрузился. Обнови страницу.';return;}
+   try{await navigator.clipboard.writeText(code);message.textContent='Код скопирован! Создай закладку и вставь его в поле URL (адрес).';}
+   catch(e){
+     var area=document.createElement('textarea');area.value=code;area.style.cssText='position:fixed;left:-9999px;top:-9999px';document.body.appendChild(area);area.select();
+     var copied=document.execCommand('copy');area.remove();
+     message.textContent=copied?'Код скопирован! Вставь его в адрес новой закладки.':'Браузер не разрешил копирование. Попробуй перетащить кнопку.';
+   }
+ });
+ document.getElementById('searchform').addEventListener('submit',function(e){
+   e.preventDefault();
+   var s=document.getElementById('avito-url').value.trim(),err=document.getElementById('form-error');
+   var u;try{u=new URL(s)}catch(x){err.textContent='Проверь, что ссылка скопирована полностью.';return;}
+   if(u.protocol!=='https:'||!['avito.ru','www.avito.ru','m.avito.ru'].includes(u.hostname)){
+     err.textContent='Нужна ссылка на поиск с avito.ru';return;
+   }
+   err.textContent='';
+   var link=document.createElement('a');link.href=u.href;link.target='_blank';link.rel='noopener noreferrer';
+   document.body.appendChild(link);link.click();link.remove();
+ });
 })();
 </script></body></html>
