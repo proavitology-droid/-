@@ -111,7 +111,7 @@ function analyze(html,url){
   const tag=card.match(/^<[^>]+>/)?.[0]||'';
   const id=attr(tag,'data-item-id')||attr(tag,'data-itemid')||card.match(/_(\d{6,14})(?:[?"'/]|$)/)?.[1];
   if(!/^\d{6,14}$/.test(String(id||'')))continue;
-  const positive=/(?:data-marker|data-testid)\s*=\s*['"][^'"]*(?:promotion|promot|boost)[^'"]*['"]|(?:aria-label|title)\s*=\s*['"][^'"]*(?:Продвинуто|Продвигается)[^'"]*['"]/i.test(card)||/\bПродвинуто\b/i.test(card.replace(/<[^>]+>/g,' ').slice(0,1500));
+  const positive=/(?:data-marker|data-testid)\s*=\s*['"][^'"]*(?:promotion|promot|boost)[^'"]*['"]|(?:aria-label|title)\s*=\s*['"][^'"]*(?:Продвинуто|Продвигается)[^'"]*['"]/i.test(card)||/(?:^|[^\p{L}])(?:Продвинуто|Продвигается)(?:$|[^\p{L}])/iu.test(card.replace(/<[^>]+>/g,' ').slice(0,25000));
   const prev=map.get(id);
   if(prev){if(positive)prev.state='yes';}
   else map.set(id,{id,title:'',state:positive?'yes':'unknown'});
