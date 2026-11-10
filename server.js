@@ -19,7 +19,7 @@ function status(obj){
     if(!o||typeof o!=='object'||d>5||seen.has(o))return;seen.add(o);
     for(const [key,v] of Object.entries(o)){
       const k=key.toLowerCase().replace(/[-_]/g,'');
-      if(['ispromoted','isboosted','haspromotion','haspaidpromotion','ispaidpromotion'].includes(k)){if(v===true||v===1)yes=true;if(v===false||v===0)no=true;}
+      if(['ispromoted','isboosted','haspromotion','haspaidpromotion','ispaidpromotion','ispromotion'].includes(k)){if(v===true||v===1)yes=true;if(v===false||v===0)no=true;}
       if(['promotions','promotion','vas','appliedvas','paidservices','promotiontypes'].includes(k)){
         if(Array.isArray(v)&&v.length===0)no=true;
         const txt=typeof v==='string'?v:JSON.stringify(v||'').slice(0,1200);
@@ -31,7 +31,7 @@ function status(obj){
   }scan(obj,0);return yes?'yes':no?'no':'unknown';
 }
 function attr(tag,name){const m=tag.match(new RegExp('(?:^|\\s)'+name+'\\s*=\\s*(?:"([^"]*)"|\\x27([^\\x27]*)\\x27|([^\\s>]+))','i'));return m?(m[1]||m[2]||m[3]||''):'';}
-function iid(o){const x=o&&typeof o==='object'?(o.value&&typeof o.value==='object'?o.value:o):{};const id=[x.id,x.itemId,x.item_id,x.adId,x.item?.id].find(v=>/^\d{6,14}$/.test(String(v||'')));return id?String(id):null;}
+function iid(o){const x=o&&typeof o==='object'?(o.value&&typeof o.value==='object'?o.value:o):{};const id=[x.id,x.itemId,x.item_id,x.adId,x.item?.id,x.id?.value].find(v=>/^\d{6,14}$/.test(String(v||'')));return id?String(id):null;}
 function collectArrays(root){
  let arr=[];const seen=new WeakSet();
  function walk(o,p,d){
@@ -51,17 +51,32 @@ function collectArrays(root){
  arr.sort((a,b)=>b.score-a.score||b.v.length-a.v.length);
  return arr[0]?.v||[];
 }
+function unescapeHtmlJson(src){
+ return src.replace(/&quot;/g,'"').replace(/&#34;/g,'"').replace(/&apos;/g,"'")
+   .replace(/&#39;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+}
 function scripts(html){
  let roots=[];
  for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
-  const s=m[2].trim(),id=attr(m[1],'id');
-  if(s.length>7000000||!(id.includes('initialData')||s.includes('__initialData__')||attr(m[1],'type')==='application/json'))continue;
-  const c=[s];
-  if(s.startsWith('%7B')){try{c.push(decodeURIComponent(s));}catch{}}
-  const a=s.match(/__initialData__\s*=\s*(['"])(.*?)\1\s*[;,]/s);
-  if(a){c.push(a[2]);try{c.push(decodeURIComponent(a[2]));}catch{}}
-  for(const x of c){try{const v=JSON.parse(x);if(v&&typeof v==='object'){roots.push(v);break;}}catch{}}
- }return roots;
+  const raw=m[2].trim(),id=attr(m[1],'id'),type=attr(m[1],'type'),mfe=attr(m[1],'data-mfe-state');
+  if(raw.length>7000000||raw.length<10)continue;
+  if(!(id.includes('initialData')||id==='__NEXT_DATA__'||raw.includes('__initialData__')||type==='application/json'||type==='mime/invalid'&&mfe==='true'))continue;
+  const variants=[raw,unescapeHtmlJson(raw)];
+  if(/%(?:7B|5B)/i.test(raw.slice(0,20))){try{variants.push(decodeURIComponent(raw));}catch{}}
+  const match=raw.match(/__initialData__\s*=\s*(['"])(.*?)\1\s*[;,]/s);
+  if(match){variants.push(match[2]);try{variants.push(decodeURIComponent(match[2]));}catch{}}
+  for(const text of variants){
+   try{
+    const obj=JSON.parse(text);
+    if(obj&&typeof obj==='object'){
+     roots.push(obj);
+     if(obj.loaderData&&obj.loaderData.data)roots.push(obj.loaderData.data);
+     break;
+    }
+   }catch{}
+  }
+ }
+ return roots;
 }
 function cards(html){
  const clean=html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi,'');
