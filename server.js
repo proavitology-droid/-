@@ -199,6 +199,15 @@ async function geonodeCheck(url) {
   try{return await task;}finally{inFlight.delete(url);}
 }
 
+if(process.env.GEONODE_PROBE === '1') {
+ console.log('GEONODE_PROBE_READY',JSON.stringify({configured: Boolean(process.env.GEONODE_SCRAPER_API_KEY)}));
+ if(process.env.GEONODE_SCRAPER_API_KEY) {
+  geonodeCheck('https://www.avito.ru/moskva/predlozheniya_uslug?q=remont')
+    .then(r => console.log('GEONODE_PROBE_RESULT',JSON.stringify({total:r.total,promoted:r.promoted,unknown:r.unknown,complete:r.complete})))
+    .catch(e => console.log('GEONODE_PROBE_ERROR',String(e?.message||'unknown').slice(0,350)));
+ }
+}
+
 http.createServer(async(req,res)=>{
  const route=new URL(req.url||'/', 'http://localhost').pathname;
  if(req.method==='GET'&&route==='/api/bookmarklet')return respond(res,200,{code:'javascript:'+BOOKMARKLET});
