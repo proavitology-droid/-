@@ -138,3 +138,6 @@ http.createServer(async(req,res)=>{
  }
  return respond(res,404,{error:'Не найдено'});
 }).listen(Number(process.env.PORT||3000),'0.0.0.0');
+
+// One-time startup diagnostic: tests availability without storing or collecting listing details.
+if(process.env.AVITO_SELFTEST === '1'){(async()=>{try{const h=await fetchPage('https://www.avito.ru/moskva?q=remont');const r=analyze(h,'https://www.avito.ru/moskva?q=remont');console.log('AVITO_SELFTEST_OK',JSON.stringify({total:r.total,promoted:r.promoted,unknown:r.unknown}));}catch(e){console.log('AVITO_SELFTEST_BLOCKED',e.message)}})();}
