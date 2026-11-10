@@ -198,6 +198,24 @@ async function geonodeCheck(url) {
       const remoteStatus=Number(data?.metadata?.http_status||data?.result?.metadata?.http_status||200);
       if(remoteStatus===403||remoteStatus===429)throw Error('Авито ограничил доступ Geonode (HTTP '+remoteStatus+').');
       if(typeof html!=='string'||!html.includes('<'))throw Error('Geonode не вернул HTML выдачи. Невозможно подтвердить результат.');
+      if(process.env.GEONODE_PROBE==='1'){
+       const roots=scripts(html);
+       const sets=roots.map(r=>collectArrays(r));
+       const cardsFound=cards(html);
+       const patterns={
+        mfe:(html.match(/data-mfe-state\s*=\s*["']true["']/gi)||[]).length,
+        promotedWord:(html.match(/Продвинуто/gi)||[]).length,
+        promotedFlag:(html.match(/isPromoted/gi)||[]).length,
+        promotionFlag:(html.match(/isPromotion/gi)||[]).length,
+        iva:(html.match(/DateInfoStep/gi)||[]).length,
+        vas:(html.match(/["']vas["']\s*:/gi)||[]).length
+       };
+       const sample=sets.find(x=>x.length)?.slice(0,2).map(x=>{
+          const item=x.value&&typeof x.value==='object'?x.value:x;
+          return {keys:Object.keys(item).slice(0,30),ivaType:typeof item.iva,ivaKeys:item.iva&&typeof item.iva==='object'?Object.keys(item.iva).slice(0,20):[],state:status(item)};
+       })||[];
+       console.log('GEONODE_PROBE_STRUCTURE',JSON.stringify({htmlLength:html.length,embeddedRoots:roots.length,embeddedItems:sets.map(x=>x.length).slice(0,10),domCards:cardsFound.length,patterns,sample}));
+      }
       const result=analyze(html,url);
       if(result.total===result.unknown&&result.promoted===0)throw Error('Страница получена, но Авито не раскрыл признаки продвижения. Точный подсчёт невозможен.');
       const value={...result,fromCache:false,source:'Geonode',note:result.complete?
