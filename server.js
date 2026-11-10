@@ -127,31 +127,48 @@ async function fetchPage(url){
 const paidUsage={day:'',count:0};
 async function analyzeWithProvider(url){
  const token=process.env.APIFY_TOKEN;
- if(!token)throw Error('Для автоматического анализа нужен настроенный источник данных.');
+ if(!token)throw Error('Автоматическая проверка пока не подключена. Авито блокирует прямые запросы (HTTP 403). Для проверки сейчас раскройте блок «Проверка сохранённой страницы» ниже.');
  const day=new Date().toISOString().slice(0,10);
  if(paidUsage.day!==day){paidUsage.day=day;paidUsage.count=0;}
  const max=Math.min(100,Math.max(1,Number(process.env.APIFY_DAILY_LIMIT||20)));
- if(paidUsage.count>=max)throw Error('Достигнут дневной лимит автоматических проверок.');
+ if(paidUsage.count>=max)throw Error('Сегодня достигнут лимит проверок. Попробуйте завтра.');
  paidUsage.count++;
- const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),95000);
+ const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),115000);
  try{
-  const r=await fetch('https://api.apify.com/v2/acts/nice_dev~avito-listings-scraper/run-sync-get-dataset-items?format=json&timeout=90',{
+  const endpoint='https://api.apify.com/v2/acts/dami_studio~avito-listings-scraper/run-sync-get-dataset-items?format=json&timeout=110';
+  const response=await fetch(endpoint,{
    method:'POST',signal:ctrl.signal,
    headers:{authorization:'Bearer '+token,'content-type':'application/json'},
-   body:JSON.stringify({startUrls:[url],maxItems:50,maxItemsPerQuery:50,extractDetails:false,proxyConfiguration:{useApifyProxy:true}})
+   body:JSON.stringify({searchUrls:[url],maxItems:50,maxPagesPerSearch:1,localOnly:false,sellerType:'any',sort:'default'})
   });
-  if(!r.ok)throw Error('Поставщик данных вернул HTTP '+r.status+'. Проверьте подключение.');
-  const result=await r.json();
-  if(!Array.isArray(result))throw Error('Поставщик данных вернул неожиданный формат.');
-  const rows=[...new Map(result.filter(x=>x&&typeof x==='object'&&x.status!=='error'&&(x.itemId||x.listingId||x.url))
-   .map(x=>[String(x.itemId||x.listingId||x.url),x])).values()].slice(0,50);
-  if(!rows.length)throw Error('Поставщик не смог получить объявления по этой ссылке.');
-  const yes=rows.filter(x=>x.isPromoted===true||Array.isArray(x.promotions)&&x.promotions.some(p=>/Продвинуто|promot/i.test(String(p))));
-  const unknown=rows.filter(x=>typeof x.isPromoted!=='boolean'&&!Array.isArray(x.promotions));
+  if(!response.ok){
+    if(response.status===401||response.status===403)throw Error('Не удалось авторизоваться у поставщика данных. Проверьте API-токен.');
+    if(response.status===408)throw Error('Проверка заняла слишком много времени. Попробуйте повторить запрос.');
+    throw Error('Поставщик данных временно недоступен (HTTP '+response.status+').');
+  }
+  const result=await response.json();
+  if(!Array.isArray(result))throw Error('Поставщик данных вернул неожиданный ответ.');
+  const notices=result.filter(x=>x&&typeof x==='object'&&
+    (x.status&&x.status!=='ok'&&x.status!=='success' || x._type==='error'));
+  if(notices.length&& !result.some(x=>x&&x.listingId)){
+    const descriptions=notices.map(x=>String(x.message||x.error||x.status)).slice(0,3);
+    throw Error('Не удалось прочитать выдачу: '+descriptions.join('; '));
+  }
+  const rows=[...new Map(result.filter(x=>x&&typeof x==='object'&&(x.listingId||x.itemId) &&
+    (!x.status||x.status==='ok'||x.status==='success'))
+    .map(x=>[String(x.listingId||x.itemId),x])).values()].slice(0,50);
+  if(!rows.length)throw Error('По этой ссылке не удалось получить объявления. Уточните фильтры и попробуйте снова.');
+  const yes=rows.filter(x=>x.isPromoted===true);
+  const unknown=rows.filter(x=>typeof x.isPromoted!=='boolean');
   return {url,total:rows.length,promoted:yes.length,unknown:unknown.length,
-   sharePercent:Math.round(yes.length/rows.length*100),complete:unknown.length===0,
+   sharePercent:Math.round(100*yes.length/rows.length),
+   complete:unknown.length===0 && !notices.length,
    checkedAt:new Date().toISOString(),
-   note:unknown.length?'Часть объявлений не содержит сведений о продвижении. Результат является нижней оценкой.':'Статус продвижения определён по данным поставщика для первых '+rows.length+' объявлений.'};
+   note:unknown.length?'У '+unknown.length+' объявлений поставщик не определил статус продвижения. Это минимальное подтверждённое количество.':
+     'Подсчитаны объявления с признаком платного продвижения на первой странице. Источник: Apify.'};
+ }catch(e){
+  if(e?.name==='AbortError')throw Error('Проверка превысила лимит времени. Попробуйте повторить.');
+  throw e;
  }finally{clearTimeout(t);}
 }
 
@@ -164,7 +181,7 @@ http.createServer(async(req,res)=>{
   if(now-h.at>3600000){h.at=now;h.n=0;}if(h.n++>19)return respond(res,429,{error:'Лимит 20 проверок в час. Попробуйте позже.'});hits.set(ip,h);
   try{
    const body=await readBody(req),url=valid(body.url);
-   if(route==='/api/check'&&process.env.APIFY_TOKEN){return respond(res,200,await analyzeWithProvider(url));}
+   if(route==='/api/check'){return respond(res,200,await analyzeWithProvider(url));}
    const html=route==='/api/check-html'?body.html:await fetchPage(url);
    return respond(res,200,analyze(html,url));
   }catch(e){return respond(res,422,{error:e?.message||'Не удалось проверить выдачу.'});}
