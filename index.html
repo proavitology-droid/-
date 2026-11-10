@@ -81,7 +81,7 @@ async function health(){
   const data=await res.json();
   configured=Boolean(data.configured);
   $('status').className='status '+(configured?'ready':'blocked');
-  $('statusLabel').textContent=configured?'Источник данных подключён':'Сервис настроен, ожидается подключение бесплатного ключа Geonode';
+  $('statusLabel').textContent=configured?'Ключ сохранён. Доступ проверится при первом запросе':'Ожидается подключение бесплатного ключа Geonode';
   $('run').disabled=!configured;
  }catch(e){$('status').className='status blocked';$('statusLabel').textContent='Не удалось проверить подключение';$('run').disabled=true;}
 }
