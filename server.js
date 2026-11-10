@@ -171,7 +171,8 @@ async function geonodeCheck(url) {
       try{data=JSON.parse(raw);}catch{throw Error('Geonode вернул ответ в неподдерживаемом формате.');}
       if(!response.ok){
         const reason=String(data?.message||data?.error?.message||data?.code||'').slice(0,120);
-        if(response.status===401||response.status===403)throw Error('Geonode не принял API-ключ. Проверьте его в настройках сервера.');
+        if(response.status===401)throw Error('Geonode не принял API-ключ (401). Проверьте его в настройках сервера.');
+        if(response.status===403)throw Error('Geonode запретил извлечение этой страницы (403). Это ограничение целевого сайта у поставщика, а не обязательно ошибка API-ключа.');
         if(response.status===402||/balance|quota|credit|exhausted/i.test(reason))throw Error('Бесплатный лимит Geonode исчерпан. Дополнительная оплата не подключена.');
         if(response.status===429)throw Error('Geonode ограничил частоту запросов. Попробуйте позже.');
         throw Error('Geonode не смог получить страницу ('+response.status+').'+(reason?' '+reason:''));
@@ -201,6 +202,21 @@ async function geonodeCheck(url) {
 
 if(process.env.GEONODE_PROBE === '1') {
  console.log('GEONODE_PROBE_READY',JSON.stringify({configured: Boolean(process.env.GEONODE_SCRAPER_API_KEY)}));
+ if(process.env.GEONODE_SCRAPER_API_KEY) {
+  (async()=>{
+   try {
+    const r=await fetch('https://scraper.geonode.io/v1/extract',{
+     method:'POST',headers:{'X-Api-Key':String(process.env.GEONODE_SCRAPER_API_KEY).trim(),'Content-Type':'application/json'},
+     body:JSON.stringify({url:'https://example.com',formats:['html'],render_js:false,processing_mode:'sync'}),
+     signal:AbortSignal.timeout(20000)
+    });
+    let d={};try{d=await r.json()}catch{}
+    const rawCode=String(d?.error?.code||d?.code||'');
+    const safeCode=/^[A-Z_]{2,45}$/.test(rawCode)?rawCode:'';
+    console.log('GEONODE_PROBE_AUTH',JSON.stringify({httpStatus:r.status,apiCode:safeCode,html:typeof d?.data?.html==='string'&&d.data.html.length>0}));
+   }catch(e){console.log('GEONODE_PROBE_AUTH_ERROR',e?.name==='TimeoutError'?'timeout':'connection_failed')}
+  })();
+ }
  if(process.env.GEONODE_SCRAPER_API_KEY) {
   geonodeCheck('https://www.avito.ru/moskva/predlozheniya_uslug?q=remont')
     .then(r => console.log('GEONODE_PROBE_RESULT',JSON.stringify({total:r.total,promoted:r.promoted,unknown:r.unknown,complete:r.complete})))
