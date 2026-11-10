@@ -29,6 +29,11 @@ input:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed666021}
 .info h3{font-size:16px;margin:0 0 7px}.info p{font-size:13px;color:#6c798b;margin:0;line-height:1.7}
 .flow{display:flex;justify-content:space-between;gap:12px;margin-top:20px}.flow span{background:#f1f4f9;border-radius:9px;text-align:center;padding:11px;flex:1;font-size:12px;font-weight:750}
 .footer{font-size:12px;color:#8b95a2;text-align:center;margin-top:25px}
+.audit{margin-top:18px;border-top:1px solid #e3e8f0;padding-top:14px}.audit summary{cursor:pointer;color:#2c4662;font-size:13px;font-weight:800}
+.audit-list{margin-top:12px;display:grid;gap:7px}.audit-item{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #e8ecf2;padding:10px;border-radius:9px;font-size:12px}
+.audit-order{font-weight:750;color:#7a889a;min-width:21px}.audit-name{min-width:0;flex:1;word-break:break-word}.audit-name a{color:#245782;text-decoration:underline;text-underline-offset:2px}
+.audit-badge{padding:4px 7px;font-size:11px;white-space:nowrap;border-radius:5px;background:#f0f2f5;color:#56657a}.audit-badge.yes{background:#edf6ee;color:#18774c}
+.audit-notice{margin-top:12px;background:#fff7e9;border-radius:10px;padding:12px 14px;font-size:12px;color:#765c31;line-height:1.6}
 .hidden{display:none!important}
 @media(max-width:610px){.header{padding:20px 16px 110px}.eyebrow{margin-top:38px}.lead{font-size:14px}.main{padding:0 11px}.panel{padding:23px 18px}.row{flex-direction:column}.cta{padding:15px}.stats{grid-template-columns:1fr}.stat strong{font-size:29px}.stat{padding:13px}.flow{flex-direction:column;gap:7px}}
 </style></head><body>
@@ -62,6 +67,11 @@ input:focus{border-color:#ed6660;box-shadow:0 0 0 3px #ed666021}
 <div class="meter"><div id="fill"></div></div>
 <p class="disclaimer" id="note"></p>
 <p class="hint" id="checked"></p>
+<div class="audit-notice">Важно: Авито может показать другому пользователю или серверу другую выдачу. Для сравнения с собственным браузером можно открыть перечень проверенных карточек ниже.</div>
+<details class="audit" id="audit">
+<summary>Показать проверенные объявления и отметки</summary>
+<div class="audit-list" id="auditList"></div>
+</details>
 </div>
 </section>
 <div class="info"><h3>Как работает проверка</h3>
@@ -92,6 +102,24 @@ function success(data){
  $('fill').style.width=String(data.sharePercent||0)+'%';
  $('note').textContent=data.note||'Результат отражает только обнаруженные признаки продвижения.';
  $('checked').textContent='Проверено '+new Date(data.checkedAt).toLocaleString('ru-RU')+(data.fromCache?' · результат из кэша':'');
+ const list=$('auditList');
+ list.textContent='';
+ if(Array.isArray(data.items)){
+  data.items.forEach(function(item){
+   const line=document.createElement('div');line.className='audit-item';
+   const number=document.createElement('span');number.className='audit-order';number.textContent='#'+item.position;
+   const name=document.createElement('span');name.className='audit-name';
+   const title=item.title||('Объявление '+item.id);
+   if(item.href){
+    const a=document.createElement('a');a.textContent=title;a.href=item.href;a.target='_blank';a.rel='noopener noreferrer';
+    name.appendChild(a);
+   }else name.textContent=title;
+   const badge=document.createElement('span');badge.className='audit-badge'+(item.marked?' yes':'');
+   badge.textContent=item.marked?'Продвинуто':'Нет отметки';
+   line.append(number,name,badge);list.appendChild(line);
+  });
+ }
+ $('audit').classList.toggle('hidden',!Array.isArray(data.items)||!data.items.length);
  $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 $('form').addEventListener('submit',async function(ev){
