@@ -95,6 +95,24 @@ function cards(html){
  }
  return out;
 }
+function cardMeta(card,id) {
+ const h3=card.match(/<h3\b[^>]*>([\s\S]*?)<\/h3>/i);
+ const title=h3 ? h3[1].replace(/<[^>]*>/g,' ')
+  .replace(/&(?:nbsp|#160);/gi,' ').replace(/&amp;/gi,'&')
+  .replace(/&quot;/gi,'"').replace(/&#(?:39|x27);/gi,"'")
+  .replace(/\s+/g,' ').trim().slice(0,130) : '';
+ let href=null;
+ for(const match of card.matchAll(/\bhref\s*=\s*["']([^"']+)["']/gi)) {
+  if(!match[1].includes('_'+id))continue;
+  try{
+   const link=new URL(match[1],'https://www.avito.ru');
+   if(['avito.ru','www.avito.ru','m.avito.ru'].includes(link.hostname) && link.protocol==='https:') {
+    link.search='';link.hash='';href=link.href;break;
+   }
+  }catch{}
+ }
+ return {title,href};
+}
 function analyze(html,url){
  if(typeof html!=='string'||!html.trim()||html.length>9000000)throw Error('Не удалось прочитать HTML или файл слишком большой.');
  if(/captcha|подтвердите, что вы не робот|доступ ограничен/i.test(html.slice(0,6000)))throw Error('Авито запросил проверку или ограничил доступ.');
@@ -112,13 +130,22 @@ function analyze(html,url){
   const id=attr(tag,'data-item-id')||attr(tag,'data-itemid')||card.match(/_(\d{6,14})(?:[?"'/]|$)/)?.[1];
   if(!/^\d{6,14}$/.test(String(id||'')))continue;
   const positive=/(?:data-marker|data-testid)\s*=\s*['"][^'"]*(?:promotion|promot|boost)[^'"]*['"]|(?:aria-label|title)\s*=\s*['"][^'"]*(?:Продвинуто|Продвигается)[^'"]*['"]/i.test(card)||/(?:^|[^\p{L}])(?:Продвинуто|Продвигается)(?:$|[^\p{L}])/iu.test(card.replace(/<[^>]+>/g,' ').slice(0,25000));
+  const details=cardMeta(card,id);
   const prev=map.get(id);
-  if(prev){if(positive)prev.state='yes';}
-  else map.set(id,{id,title:'',state:positive?'yes':'unknown'});
+  if(prev){
+   if(positive)prev.state='yes';
+   if(!prev.title&&details.title)prev.title=details.title;
+   if(!prev.href&&details.href)prev.href=details.href;
+  } else map.set(id,{id,title:details.title,href:details.href,state:positive?'yes':'unknown'});
  }
  if(!map.size)throw Error('Не удалось прочитать объявления. Авито мог изменить разметку страницы.');
  const arr=[...map.values()],promo=arr.filter(x=>x.state==='yes'),unknown=arr.filter(x=>x.state==='unknown');
- return {url,total:arr.length,promoted:promo.length,unknown:unknown.length,sharePercent:Math.round(100*promo.length/arr.length),complete:unknown.length===0,checkedAt:new Date().toISOString(),note:unknown.length?'Явные признаки продвижения найдены, но у '+unknown.length+' объявлений статус не удалось проверить. Итог является нижней оценкой.':'Статус продвижения найден у всех обнаруженных объявлений.'};
+ return {url,total:arr.length,promoted:promo.length,unknown:unknown.length,
+  sharePercent:Math.round(100*promo.length/arr.length),
+  complete:unknown.length===0,
+  checkedAt:new Date().toISOString(),
+  items:arr.slice(0,70).map((x,i)=>({position:i+1,id:x.id,title:x.title||'',href:x.href||null,marked:x.state==='yes'})),
+  note:unknown.length?'Это подсчёт отметок на странице, отдельно загруженной сервером. У '+unknown.length+' объявлений подтверждённого признака продвижения нет. Выдача может отличаться от той, что открылась в вашем браузере.':'Отметки продвижения посчитаны в отдельно полученной сервером выдаче; в личном браузере порядок и состав карточек могут отличаться.'};
 }
 async function readBody(req){
  return new Promise((ok,bad)=>{let body='',failed=false;req.on('data',c=>{body+=c;if(body.length>9000000&&!failed){failed=true;bad(Error('Файл больше 9 МБ.'));req.destroy();}});req.on('end',()=>{if(!failed){try{ok(JSON.parse(body));}catch{bad(Error('Неверный формат запроса.'));}}});req.on('error',bad);});
@@ -239,8 +266,8 @@ async function geonodeCheck(url) {
       const result=analyze(html,url);
       if(result.total===result.unknown&&result.promoted===0)throw Error('Страница получена, но Авито не раскрыл признаки продвижения. Точный подсчёт невозможен.');
       const value={...result,fromCache:false,source:'Geonode',note:result.complete?
-        'Подсчитаны объявления с найденными признаками продвижения на первой странице выдачи.':
-        'Найдены явные признаки продвижения, но статус '+result.unknown+' карточек неизвестен. Показан подтверждённый минимум, а не точное число.'};
+        'Считаются отметки в версии выдачи, полученной Geonode. Состав объявлений в вашем браузере может отличаться.':
+        'Это отметки в отдельно загруженной выдаче Geonode. У '+result.unknown+' карточек нет подтверждённого признака; результаты могут отличаться от вашего браузера.'};
       if(requestCache.size>120)requestCache.delete(requestCache.keys().next().value);
       requestCache.set(url,{when:Date.now(),result:value});
       return value;
