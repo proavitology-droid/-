@@ -202,6 +202,22 @@ async function geonodeCheck(url) {
        const roots=scripts(html);
        const sets=roots.map(r=>collectArrays(r));
        const cardsFound=cards(html);
+       const cardStats={count:cardsFound.length,tagId:0,hrefId:0,promoRaw:0,promoRenderedText:0,promoTitleKey:0,promoAria:0,promoInMarkup:0,iva:0};
+       const exampleTags=[];
+       for(const card of cardsFound){
+        const tag=card.match(/^<[^>]+>/)?.[0]||'';
+        if(/^\\d{6,14}$/.test(attr(tag,'data-item-id')||''))cardStats.tagId++;
+        if(/_\\d{6,14}(?:[?"'/]|$)/.test(card))cardStats.hrefId++;
+        if(/Продвинуто|Продвигается/i.test(card))cardStats.promoRaw++;
+        const visible=card.replace(/<[^>]+>/g,' ');
+        if(/Продвинуто|Продвигается/i.test(visible))cardStats.promoRenderedText++;
+        if(/(?:&quot;|["'])title(?:&quot;|["'])\\s*:\\s*(?:&quot;|["'])Продвинуто/i.test(card))cardStats.promoTitleKey++;
+        if(/(?:aria-label|title)\\s*=\\s*["'][^"']*(?:Продвинуто|Продвигается)/i.test(card))cardStats.promoAria++;
+        if(/<(?:span|div|p)\\b[^>]*>\\s*(?:Продвинуто|Продвигается)\\s*</i.test(card))cardStats.promoInMarkup++;
+        if(/DateInfoStep/.test(card))cardStats.iva++;
+        if(exampleTags.length<2)exampleTags.push([...tag.matchAll(/\\s([\\w:-]+)\\s*(?:=|>)/g)].map(v=>v[1]).slice(0,22));
+       }
+       console.log('GEONODE_PROBE_CARD_STATS',JSON.stringify({cardStats,firstCardAttributeNames:exampleTags}));
        const patterns={
         blockedHtml:/captcha|access denied|доступ ограничен|робот|429 too many/i.test(html),
         hasCatalogMarkers:/data-marker=[\"'](?:item|catalog-serp-item)/i.test(html),
