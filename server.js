@@ -203,6 +203,10 @@ async function geonodeCheck(url) {
        const sets=roots.map(r=>collectArrays(r));
        const cardsFound=cards(html);
        const patterns={
+        blockedHtml:/captcha|access denied|доступ ограничен|робот|429 too many/i.test(html),
+        hasCatalogMarkers:/data-marker=[\"'](?:item|catalog-serp-item)/i.test(html),
+        hasPageTitle:/<title[^>]*>/i.test(html),
+        hasQueryInHtml:html.toLowerCase().includes('ковка'),
         mfe:(html.match(/data-mfe-state\s*=\s*["']true["']/gi)||[]).length,
         promotedWord:(html.match(/Продвинуто/gi)||[]).length,
         promotedFlag:(html.match(/isPromoted/gi)||[]).length,
@@ -234,27 +238,10 @@ async function geonodeCheck(url) {
 }
 
 if(process.env.GEONODE_PROBE === '1') {
- console.log('GEONODE_PROBE_READY',JSON.stringify({configured: Boolean(process.env.GEONODE_SCRAPER_API_KEY)}));
- if(process.env.GEONODE_SCRAPER_API_KEY) {
-  (async()=>{
-   try {
-    const r=await fetch('https://scraper.geonode.io/v1/extract',{
-     method:'POST',headers:{'X-Api-Key':String(process.env.GEONODE_SCRAPER_API_KEY).trim(),'Content-Type':'application/json'},
-     body:JSON.stringify({url:'https://example.com',formats:['html'],render_js:false,processing_mode:'sync'}),
-     signal:AbortSignal.timeout(20000)
-    });
-    let d={};try{d=await r.json()}catch{}
-    const rawCode=String(d?.error?.code||d?.code||'');
-    const safeCode=/^[A-Z_]{2,45}$/.test(rawCode)?rawCode:'';
-    console.log('GEONODE_PROBE_AUTH',JSON.stringify({httpStatus:r.status,apiCode:safeCode,html:typeof d?.data?.html==='string'&&d.data.html.length>0}));
-   }catch(e){console.log('GEONODE_PROBE_AUTH_ERROR',e?.name==='TimeoutError'?'timeout':'connection_failed')}
-  })();
- }
- if(process.env.GEONODE_SCRAPER_API_KEY) {
-  geonodeCheck('https://www.avito.ru/moskva/predlozheniya_uslug?q=remont')
-    .then(r => console.log('GEONODE_PROBE_RESULT',JSON.stringify({total:r.total,promoted:r.promoted,unknown:r.unknown,complete:r.complete})))
-    .catch(e => console.log('GEONODE_PROBE_ERROR',String(e?.message||'unknown').slice(0,350)));
- }
+ console.log('GEONODE_CONTROL_TEST_STARTED',JSON.stringify({keyword:'ковка изделий из металла',city:'Москва',category:'услуги'}));
+ geonodeCheck('https://www.avito.ru/moskva/predlozheniya_uslug?cd=1&q=%D0%BA%D0%BE%D0%B2%D0%BA%D0%B0+%D0%B8%D0%B7%D0%B4%D0%B5%D0%BB%D0%B8%D0%B9+%D0%B8%D0%B7+%D0%BC%D0%B5%D1%82%D0%B0%D0%BB%D0%BB%D0%B0')
+  .then(r=>console.log('GEONODE_CONTROL_TEST_RESULT',JSON.stringify({total:r.total,promoted:r.promoted,unknown:r.unknown,complete:r.complete})))
+  .catch(e=>console.log('GEONODE_CONTROL_TEST_ERROR',String(e?.message||'unknown').slice(0,300)));
 }
 
 http.createServer(async(req,res)=>{
