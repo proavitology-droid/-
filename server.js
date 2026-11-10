@@ -125,68 +125,94 @@ async function fetchPage(url){
  }finally{clearTimeout(t);}
 }
 
-const paidUsage={day:'',count:0};
-async function analyzeWithProvider(url){
- const token=process.env.APIFY_TOKEN;
- if(!token)throw Error('Автоматическая проверка пока не подключена. Авито блокирует прямые запросы (HTTP 403). Для проверки сейчас раскройте блок «Проверка сохранённой страницы» ниже.');
- const day=new Date().toISOString().slice(0,10);
- if(paidUsage.day!==day){paidUsage.day=day;paidUsage.count=0;}
- const max=Math.min(100,Math.max(1,Number(process.env.APIFY_DAILY_LIMIT||20)));
- if(paidUsage.count>=max)throw Error('Сегодня достигнут лимит проверок. Попробуйте завтра.');
- paidUsage.count++;
- const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),115000);
- try{
-  const endpoint='https://api.apify.com/v2/acts/dami_studio~avito-listings-scraper/run-sync-get-dataset-items?format=json&timeout=110';
-  const response=await fetch(endpoint,{
-   method:'POST',signal:ctrl.signal,
-   headers:{authorization:'Bearer '+token,'content-type':'application/json'},
-   body:JSON.stringify({searchUrls:[url],maxItems:50,maxPagesPerSearch:1,localOnly:false,sellerType:'any',sort:'default'})
-  });
-  if(!response.ok){
-    if(response.status===401||response.status===403)throw Error('Не удалось авторизоваться у поставщика данных. Проверьте API-токен.');
-    if(response.status===408)throw Error('Проверка заняла слишком много времени. Попробуйте повторить запрос.');
-    throw Error('Поставщик данных временно недоступен (HTTP '+response.status+').');
+const requestCache = new Map();
+const inFlight = new Map();
+const quota = {date:'', count:0};
+const CACHE_TTL_MS = 15 * 60 * 1000;
+async function geonodeCheck(url) {
+  const key = process.env.GEONODE_SCRAPER_API_KEY;
+  if(!key) {
+    const err = new Error('Сервис готов к проверке, но Geonode ещё не подключён. Владелец сайта должен добавить бесплатный API-ключ.');
+    err.httpStatus = 503;
+    throw err;
   }
-  const result=await response.json();
-  if(!Array.isArray(result))throw Error('Поставщик данных вернул неожиданный ответ.');
-  const notices=result.filter(x=>x&&typeof x==='object'&&
-    (x.status&&x.status!=='ok'&&x.status!=='success' || x._type==='error'));
-  if(notices.length&& !result.some(x=>x&&x.listingId)){
-    const descriptions=notices.map(x=>String(x.message||x.error||x.status)).slice(0,3);
-    throw Error('Не удалось прочитать выдачу: '+descriptions.join('; '));
+  const cached = requestCache.get(url);
+  if (cached && Date.now()-cached.when<CACHE_TTL_MS) {
+    return {...cached.result,fromCache:true};
   }
-  const rows=[...new Map(result.filter(x=>x&&typeof x==='object'&&(x.listingId||x.itemId) &&
-    (!x.status||x.status==='ok'||x.status==='success'))
-    .map(x=>[String(x.listingId||x.itemId),x])).values()].slice(0,50);
-  if(!rows.length)throw Error('По этой ссылке не удалось получить объявления. Уточните фильтры и попробуйте снова.');
-  const yes=rows.filter(x=>x.isPromoted===true);
-  const unknown=rows.filter(x=>typeof x.isPromoted!=='boolean');
-  return {url,total:rows.length,promoted:yes.length,unknown:unknown.length,
-   sharePercent:Math.round(100*yes.length/rows.length),
-   complete:unknown.length===0 && !notices.length,
-   checkedAt:new Date().toISOString(),
-   note:unknown.length?'У '+unknown.length+' объявлений поставщик не определил статус продвижения. Это минимальное подтверждённое количество.':
-     'Подсчитаны объявления с признаком платного продвижения на первой странице. Источник: Apify.'};
- }catch(e){
-  if(e?.name==='AbortError')throw Error('Проверка превысила лимит времени. Попробуйте повторить.');
-  throw e;
- }finally{clearTimeout(t);}
+  if (inFlight.has(url)) return inFlight.get(url);
+  const task=(async()=>{
+    const now = new Date().toISOString().slice(0,10);
+    if(quota.date!==now) {quota.date=now;quota.count=0;}
+    const dailyMax = Math.max(1,Math.min(100,Number(process.env.GEONODE_DAILY_LIMIT||40)));
+    if(quota.count>=dailyMax) {
+      const e=new Error('Дневной лимит бесплатных проверок исчерпан. Попробуйте завтра.');
+      e.httpStatus=429;throw e;
+    }
+    quota.count++;
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),85000);
+    try{
+      const response=await fetch('https://scraper.geonode.io/v1/extract',{
+        method:'POST',
+        signal:controller.signal,
+        headers:{'Content-Type':'application/json','X-Api-Key':key},
+        body:JSON.stringify({
+          url,
+          formats:['html'],
+          render_js:true,
+          processing_mode:'sync',
+          timeout:70000,
+          headers:{'Accept-Language':'ru-RU,ru;q=0.9'}
+        })
+      });
+      const raw=await response.text();
+      let data;
+      try{data=JSON.parse(raw);}catch{throw Error('Geonode вернул ответ в неподдерживаемом формате.');}
+      if(!response.ok){
+        const reason=String(data?.message||data?.error?.message||data?.code||'').slice(0,120);
+        if(response.status===401||response.status===403)throw Error('Geonode не принял API-ключ. Проверьте его в настройках сервера.');
+        if(response.status===402||/balance|quota|credit|exhausted/i.test(reason))throw Error('Бесплатный лимит Geonode исчерпан. Дополнительная оплата не подключена.');
+        if(response.status===429)throw Error('Geonode ограничил частоту запросов. Попробуйте позже.');
+        throw Error('Geonode не смог получить страницу ('+response.status+').'+(reason?' '+reason:''));
+      }
+      if(data?.status==='failed'||data?.error)throw Error('Geonode сообщил об ошибке получения страницы.');
+      if(data?.status==='queued'||data?.status==='processing')throw Error('Geonode ещё обрабатывает страницу. Повторите позже.');
+      const html=data?.data?.html||data?.result?.data?.html;
+      const remoteStatus=Number(data?.metadata?.http_status||data?.result?.metadata?.http_status||200);
+      if(remoteStatus===403||remoteStatus===429)throw Error('Авито ограничил доступ Geonode (HTTP '+remoteStatus+').');
+      if(typeof html!=='string'||!html.includes('<'))throw Error('Geonode не вернул HTML выдачи. Невозможно подтвердить результат.');
+      const result=analyze(html,url);
+      if(result.total===result.unknown&&result.promoted===0)throw Error('Страница получена, но Авито не раскрыл признаки продвижения. Точный подсчёт невозможен.');
+      const value={...result,fromCache:false,source:'Geonode',note:result.complete?
+        'Подсчитаны объявления с найденными признаками продвижения на первой странице выдачи.':
+        'Найдены явные признаки продвижения, но статус '+result.unknown+' карточек неизвестен. Показан подтверждённый минимум, а не точное число.'};
+      if(requestCache.size>120)requestCache.delete(requestCache.keys().next().value);
+      requestCache.set(url,{when:Date.now(),result:value});
+      return value;
+    }catch(e){
+      if(e?.name==='AbortError')throw Error('Проверка заняла слишком много времени. Попробуйте позже.');
+      throw e;
+    }finally{clearTimeout(timer);}
+  })();
+  inFlight.set(url,task);
+  try{return await task;}finally{inFlight.delete(url);}
 }
 
 http.createServer(async(req,res)=>{
  const route=new URL(req.url||'/', 'http://localhost').pathname;
  if(req.method==='GET'&&route==='/api/bookmarklet')return respond(res,200,{code:'javascript:'+BOOKMARKLET});
- if(req.method==='GET'&&route==='/api/health')return respond(res,200,{ok:true,version:'1.0.0'});
+ if(req.method==='GET'&&route==='/api/health')return respond(res,200,{ok:true,version:'2.0.0',provider:'geonode',configured:Boolean(process.env.GEONODE_SCRAPER_API_KEY)});
  if(req.method==='GET'&&route==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(PAGE);}
  if(req.method==='POST'&&(route==='/api/check'||route==='/api/check-html')){
   const ip=req.socket.remoteAddress||'unknown',now=Date.now(),h=hits.get(ip)||{at:now,n:0};
   if(now-h.at>3600000){h.at=now;h.n=0;}if(h.n++>19)return respond(res,429,{error:'Лимит 20 проверок в час. Попробуйте позже.'});hits.set(ip,h);
   try{
    const body=await readBody(req),url=valid(body.url);
-   if(route==='/api/check'){return respond(res,200,await analyzeWithProvider(url));}
+   if(route==='/api/check'){return respond(res,200,await geonodeCheck(url));}
    const html=route==='/api/check-html'?body.html:await fetchPage(url);
    return respond(res,200,analyze(html,url));
-  }catch(e){return respond(res,422,{error:e?.message||'Не удалось проверить выдачу.'});}
+  }catch(e){return respond(res,e.httpStatus||422,{error:e?.message||'Не удалось проверить выдачу.'});}
  }
  return respond(res,404,{error:'Не найдено'});
 }).listen(Number(process.env.PORT||3000),'0.0.0.0');
