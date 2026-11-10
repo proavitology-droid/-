@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "node -c server.js"
+    "test": "node --check server.js && node --check bookmarklet.js"
   },
   "engines": {
     "node": ">=20"
